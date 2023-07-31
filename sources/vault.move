@@ -94,9 +94,11 @@ module aux::vault {
     public entry fun withdraw_all_available<CoinType>(sender: &signer) acquires CoinBalance {
         let sender_addr = signer::address_of(sender);
         let b = available_balance<CoinType>(sender_addr);
-        decrease_user_balance<CoinType>(sender_addr, b);
-        let vault_signer = onchain_signer::get_signer(@aux);
-        coin::transfer<CoinType>(&vault_signer, sender_addr, (b as u64));
+        if (b > 0) {
+            decrease_user_balance<CoinType>(sender_addr, b);
+            let vault_signer = onchain_signer::get_signer(@aux);
+            coin::transfer<CoinType>(&vault_signer, sender_addr, (b as u64));
+        }
     }
 
     /// Return's the user balance in CoinType. Returns zero if no amount of

@@ -7,7 +7,7 @@ module aux::moon_coin {
             sender,
             b"Moon Coin",
             b"MOON",
-            2,
+            0,
             false,
         );
     }

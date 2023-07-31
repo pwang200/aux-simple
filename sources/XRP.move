@@ -6,7 +6,7 @@ module aux::xrp_coin {
             sender,
             b"XRP Coin",
             b"XRP",
-            2,
+            0,
             false,
         );
     }

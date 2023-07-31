@@ -6,7 +6,7 @@ module aux::dog_coin {
             sender,
             b"Dog Coin",
             b"DOG",
-            2,
+            0,
             false,
         );
     }

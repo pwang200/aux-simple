@@ -175,6 +175,7 @@ module aux::clob_market {
         let market = borrow_global_mut<Market<B, Q>>(resource_addr);
         let order_id = generate_order_id(market);
         debug::print(&order_id);
+
         let (base_au, quote_au) = new_order(
             market,
             sender_addr,
@@ -544,7 +545,13 @@ module aux::clob_market {
     }
 
     #[test_only]
-    use aux::util::{QuoteCoin, BaseCoin, assert_eq_u128};
+    //use aux::util::{QuoteCoin, BaseCoin, assert_eq_u128};
+    use aux::moon_coin::MoonCoin as BaseCoin;
+    #[test_only]
+    use aux::xrp_coin::XRPCoin as QuoteCoin;
+    #[test_only]
+    use aux::util::assert_eq_u128;
+
     #[test_only]
     use aptos_framework::account;
     // #[test_only]
@@ -604,17 +611,14 @@ module aux::clob_market {
         coin::register<Q>(alice);
         coin::register<B>(alice);
         util::mint_coin_for_test<Q>(aux, alice_addr, 100000000);
-        util::mint_coin_for_test<B>(aux, alice_addr, 100000000);
+        //util::mint_coin_for_test<B>(aux, alice_addr, 100000000);
 
         // set up bob aux account
         coin::register<Q>(bob);
         coin::register<B>(bob);
-        util::mint_coin_for_test<Q>(aux, bob_addr, 100000000);
+        //util::mint_coin_for_test<Q>(aux, bob_addr, 100000000);
         util::mint_coin_for_test<B>(aux, bob_addr, 100000000);
 
-        //
-        // coin::register<Q>(aux);
-        // coin::register<B>(aux);
         return (alice_addr, bob_addr)
     }
 
@@ -635,7 +639,7 @@ module aux::clob_market {
         assert_eq_u128(vault::balance<QuoteCoin>(bob_addr), 0);
         assert_eq_u128(vault::balance<BaseCoin>(bob_addr), 5000);
 
-        // 1. alice: BUY 2 @ 100
+        // 1. alice: BUY 3 @ 100
         place_order<BaseCoin, QuoteCoin>(alice, true, 10000, 300, LIMIT_ORDER);
         assert_eq_u128(vault::balance<QuoteCoin>(alice_addr), 500000);
         assert!(vault::available_balance<QuoteCoin>(alice_addr) == 470000,
@@ -645,7 +649,8 @@ module aux::clob_market {
         // 2. bob: SELL 1 @ 100
         place_order<BaseCoin, QuoteCoin>(bob, false, 10000, 100,  LIMIT_ORDER);
         assert_eq_u128(vault::balance<QuoteCoin>(alice_addr) , 490000);
-        assert!(vault::available_balance<QuoteCoin>(alice_addr) == 470000, (vault::available_balance<QuoteCoin>(alice_addr) as u64));
+        assert!(vault::available_balance<QuoteCoin>(alice_addr) == 470000,
+            (vault::available_balance<QuoteCoin>(alice_addr) as u64));
         assert_eq_u128(vault::balance<BaseCoin>(alice_addr), 100);
 
         assert_eq_u128(vault::balance<QuoteCoin>(bob_addr), 10000);
@@ -655,7 +660,8 @@ module aux::clob_market {
         // 3. bob: SELL 1 @ 100
         place_order<BaseCoin, QuoteCoin>(bob, false, 10000, 100,  LIMIT_ORDER);
         assert_eq_u128(vault::balance<QuoteCoin>(alice_addr) , 480000);
-        assert!(vault::available_balance<QuoteCoin>(alice_addr) == 470000, (vault::available_balance<QuoteCoin>(alice_addr) as u64));
+        assert!(vault::available_balance<QuoteCoin>(alice_addr) == 470000,
+            (vault::available_balance<QuoteCoin>(alice_addr) as u64));
         assert_eq_u128(vault::balance<BaseCoin>(alice_addr), 200);
 
         assert_eq_u128(vault::balance<QuoteCoin>(bob_addr), 20000);
@@ -678,6 +684,12 @@ module aux::clob_market {
             (vault::available_balance<QuoteCoin>(alice_addr) as u64));
 
         // 7. withdraw
+        vault::withdraw_all_available<BaseCoin>(alice);
+        assert!(vault::available_balance<BaseCoin>(alice_addr) == 0,
+            (vault::available_balance<BaseCoin>(alice_addr) as u64));
+        assert!(coin::balance<BaseCoin>(alice_addr) == 200,
+            (coin::balance<BaseCoin>(alice_addr) as u64));
+
         vault::withdraw_all_available<QuoteCoin>(alice);
         assert!(vault::available_balance<QuoteCoin>(alice_addr) == 0,
             (vault::available_balance<QuoteCoin>(alice_addr) as u64));
